@@ -2,7 +2,7 @@ import { Electroview } from "electrobun/view";
 import type { AppSchema } from "../../shared/ipc-schema";
 
 const view = new Electroview({
-	rpc: Electroview.defineRPC<AppSchema>({ handlers: {} }),
+  rpc: Electroview.defineRPC<AppSchema>({ handlers: {} }),
 });
 
 /**
