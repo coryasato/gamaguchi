@@ -1,15 +1,5 @@
-# electrobun-solid
+# Gamachuchi
 
-To install dependencies:
+Asset portfolio client
 
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run 
-```
-
-This project was created using `bun init` in bun v1.3.13. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+WIP
