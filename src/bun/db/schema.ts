@@ -1,11 +1,27 @@
 import { Database } from "bun:sqlite";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
+
+function dbPath(): string {
+  const home = Bun.env.HOME ?? "/tmp";
+  let dir: string;
+  if (process.platform === "darwin") {
+    dir = join(home, "Library", "Application Support", "gamaguchi");
+  } else if (process.platform === "win32") {
+    dir = join(Bun.env.APPDATA ?? home, "gamaguchi");
+  } else {
+    dir = join(Bun.env.XDG_DATA_HOME ?? join(home, ".local", "share"), "gamaguchi");
+  }
+  mkdirSync(dir, { recursive: true });
+  return join(dir, "gamaguchi.db");
+}
 
 let _db: Database | null = null;
 
 export function getDb(): Database {
   if (_db) return _db;
 
-  _db = new Database("gamaguchi.db", { create: true });
+  _db = new Database(dbPath(), { create: true });
   _db.run("PRAGMA journal_mode = WAL");
   _db.run("PRAGMA foreign_keys = ON");
 
