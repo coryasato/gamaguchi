@@ -116,6 +116,13 @@ export function getLatestAnalysis(portfolioId: number): AnalysisResultParsed | n
   return row ? parseAnalysis(row) : null;
 }
 
+export function getAnalysisById(id: number): AnalysisResultParsed | null {
+  const row = getDb()
+    .query<AnalysisResult, [number]>("SELECT * FROM analysis_results WHERE id = ?")
+    .get(id);
+  return row ? parseAnalysis(row) : null;
+}
+
 export function saveAnalysisResult(
   portfolioId: number,
   model: string,

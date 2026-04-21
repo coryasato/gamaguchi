@@ -1,8 +1,8 @@
 {
-  "name": "electrobun-solid",
-  "version": "1.0.0",
+  "name": "gamaguchi",
+  "version": "0.0.1",
   "type": "module",
-  "description": "Electrobun app with SolidJS and Vite HMR",
+  "description": "Asset portfolio client",
   "scripts": {
     "start": "vite build && electrobun dev",
     "dev": "electrobun dev --watch",
@@ -11,6 +11,7 @@
     "build:canary": "vite build && electrobun build --env=canary"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
     "electrobun": "1.16.0"
   },
   "devDependencies": {

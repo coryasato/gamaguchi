@@ -11,8 +11,10 @@ import {
   updateHolding,
   deleteHolding,
   listAnalysisResults,
+  getAnalysisById,
 } from "./db/queries";
 import { providers } from "./providers/manager";
+import { analyzePortfolio, explainSignal } from "./analysis/claude";
 
 export const rpc = BrowserView.defineRPC<AppSchema>({
   handlers: {
@@ -44,13 +46,18 @@ export const rpc = BrowserView.defineRPC<AppSchema>({
       getPrices: ({ symbols }) => providers.getPrices(symbols),
 
       // ── Analysis ────────────────────────────────────────────────────────
-      // Implemented in Step 5 (feat/05-analysis)
-      analyzePortfolio: () => {
-        throw new Error("Analysis not yet implemented");
+      analyzePortfolio: async ({ portfolioId }) => {
+        const portfolio = getPortfolio(portfolioId);
+        if (!portfolio) throw new Error(`Portfolio ${portfolioId} not found`);
+        return analyzePortfolio(portfolioId, portfolio.name);
       },
 
-      getSignalExplanation: () => {
-        throw new Error("Signal explanation not yet implemented");
+      getSignalExplanation: async ({ analysisId, signalIndex }) => {
+        const record = getAnalysisById(analysisId);
+        if (!record) throw new Error(`Analysis ${analysisId} not found`);
+        const signal = record.signals[signalIndex];
+        if (!signal) throw new Error(`Signal index ${signalIndex} out of range`);
+        return explainSignal(analysisId, signalIndex, signal, record.portfolio_id);
       },
 
       listAnalysisResults: ({ portfolioId }) => listAnalysisResults(portfolioId),
