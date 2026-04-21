@@ -87,7 +87,7 @@ src/
 - [x] **Step 3** — `feat/03-ipc` — typed IPC contracts between Bun main and SolidJS renderer
 - [x] **Step 4** — `feat/04-core-ui` — portfolio CRUD, holdings table, asset search
 - [x] **Step 5** — `feat/05-analysis` — Claude integration, signal generation
-- [ ] **Step 6** — `feat/06-signals-ux` — SignalCard, lazy Explain, signal caching
+- [x] **Step 6** — `feat/06-signals-ux` — SignalCard, lazy Explain, signal caching
 
 ## Future / Out of Scope for Now
 
