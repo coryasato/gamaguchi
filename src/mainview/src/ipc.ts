@@ -6,8 +6,8 @@ const view = new Electroview({
 });
 
 /**
- * Typed proxy for calling bun-side methods from SolidJS components.
- * Usage: await bun.listPortfolios()
- *        await bun.searchAssets({ query: "bitcoin" })
+ * Typed proxy for calling main-process methods from SolidJS components.
+ * Usage: await api.listPortfolios()
+ *        await api.searchAssets({ query: "bitcoin" })
  */
-export const bun = view.rpc!.requestProxy;
+export const api = view.rpc!.requestProxy;
