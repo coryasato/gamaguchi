@@ -83,7 +83,7 @@ src/
 ## Build Order
 
 - [x] **Step 1** — `feat/01-db-schema` — SQLite schema + typed queries
-- [ ] **Step 2** — `feat/02-providers` — CoinGecko + Kraken + ProviderManager rotation
+- [x] **Step 2** — `feat/02-providers` — CoinGecko + Kraken + ProviderManager rotation
 - [ ] **Step 3** — `feat/03-ipc` — typed IPC contracts between Bun main and SolidJS renderer
 - [ ] **Step 4** — `feat/04-core-ui` — portfolio CRUD, holdings table, asset search
 - [ ] **Step 5** — `feat/05-analysis` — Claude integration, signal generation
