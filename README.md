@@ -1,4 +1,4 @@
-# Gamachuchi
+# Gamaguchi
 
 Asset portfolio client
 

@@ -62,7 +62,7 @@ export default function SignalCard(props: Props) {
 
       <Show when={expanded()}>
         <div class="signal-explanation">
-          <Show when={!loading()} fallback={<span class="muted">Asking Claude…</span>}>
+          <Show when={!loading()} fallback={<span class="muted">Asking Grok…</span>}>
             {explanation()}
           </Show>
         </div>

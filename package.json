@@ -11,7 +11,8 @@
     "build:canary": "vite build && electrobun build --env=canary"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@ai-sdk/xai": "^1.2.17",
+    "ai": "^4.3.16",
     "electrobun": "1.16.0"
   },
   "devDependencies": {

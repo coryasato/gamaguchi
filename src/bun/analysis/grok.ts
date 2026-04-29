@@ -1,4 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { generateText } from "ai";
+import { createXai } from "@ai-sdk/xai";
 import type { Signal, AnalysisResultParsed } from "../db/types";
 import type { PriceData } from "../providers/types";
 import {
@@ -15,16 +16,16 @@ import {
 } from "../db/queries";
 import { providers } from "../providers/manager";
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "grok-4.20-reasoning";
 
-let _client: Anthropic | null = null;
+let _xai: ReturnType<typeof createXai> | null = null;
 
-function getClient(): Anthropic {
-  if (_client) return _client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set in .env");
-  _client = new Anthropic({ apiKey });
-  return _client;
+function getClient(): ReturnType<typeof createXai> {
+  if (_xai) return _xai;
+  const apiKey = Bun.env.XAI_API_KEY;
+  if (!apiKey) throw new Error("XAI_API_KEY is not set in .env");
+  _xai = createXai({ apiKey });
+  return _xai;
 }
 
 export async function analyzePortfolio(
@@ -40,16 +41,14 @@ export async function analyzePortfolio(
   const ctx: PortfolioContext = { portfolioName, holdings, prices };
   const userPrompt = buildAnalysisPrompt(ctx);
 
-  const message = await getClient().messages.create({
-    model: MODEL,
-    max_tokens: 1024,
+  const { text } = await generateText({
+    model: getClient()(MODEL),
+    maxTokens: 1024,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userPrompt }],
+    prompt: userPrompt,
   });
 
-  const raw = message.content.find((b) => b.type === "text")?.text ?? "";
-  const parsed = parseAnalysisResponse(raw);
-
+  const parsed = parseAnalysisResponse(text);
   return saveAnalysisResult(portfolioId, MODEL, parsed.summary, parsed.signals);
 }
 
@@ -59,7 +58,6 @@ export async function explainSignal(
   signal: Signal,
   portfolioId: number,
 ): Promise<string> {
-  // Return cached explanation if available
   const cached = getSignalDetail(analysisId, signalIndex);
   if (cached) return cached.explanation;
 
@@ -74,19 +72,18 @@ export async function explainSignal(
 
   const prompt = buildExplainPrompt(signal.short_label, signal.context, holding, price);
 
-  const message = await getClient().messages.create({
-    model: MODEL,
-    max_tokens: 512,
-    messages: [{ role: "user", content: prompt }],
+  const { text } = await generateText({
+    model: getClient()(MODEL),
+    maxTokens: 512,
+    prompt,
   });
 
-  const explanation = message.content.find((b) => b.type === "text")?.text?.trim() ?? "";
+  const explanation = text.trim();
   saveSignalDetail(analysisId, signalIndex, explanation);
   return explanation;
 }
 
 function parseAnalysisResponse(raw: string): { summary: string; signals: Signal[] } {
-  // Strip markdown code fences if present
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
   try {
     const data = JSON.parse(cleaned);
@@ -101,7 +98,6 @@ function parseAnalysisResponse(raw: string): { summary: string; signals: Signal[
     }));
     return { summary: data.summary, signals };
   } catch {
-    // Graceful fallback — surface the raw text as a single signal
     return {
       summary: "Analysis complete.",
       signals: [{

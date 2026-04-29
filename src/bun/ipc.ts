@@ -14,7 +14,7 @@ import {
   getAnalysisById,
 } from "./db/queries";
 import { providers } from "./providers/manager";
-import { analyzePortfolio, explainSignal } from "./analysis/claude";
+import { analyzePortfolio, explainSignal } from "./analysis/grok";
 
 export const rpc = BrowserView.defineRPC<AppSchema>({
   handlers: {
