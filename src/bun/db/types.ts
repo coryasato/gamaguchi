@@ -28,6 +28,7 @@ export type PriceCache = {
 
 export type Signal = {
   severity: "low" | "medium" | "high";
+  action: "watch" | "reduce" | "add" | "exit" | "hold";
   asset: string;
   short_label: string;
   context: string;

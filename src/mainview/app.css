@@ -563,6 +563,21 @@ tbody tr:hover .row-actions {
 .badge-medium { background: rgba(251,191,36,0.15);  color: var(--warn); }
 .badge-high   { background: rgba(248,113,113,0.15); color: var(--loss); }
 
+.signal-action-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.action-add    { background: rgba(52,211,153,0.12);  color: var(--gain); }
+.action-reduce { background: rgba(248,113,113,0.12); color: var(--loss); }
+.action-exit   { background: rgba(248,113,113,0.18); color: var(--loss); }
+.action-watch  { background: rgba(251,191,36,0.12);  color: var(--warn); }
+.action-hold   { background: rgba(123,138,184,0.10); color: var(--text-muted); }
+
 .signal-asset {
   font-size: 12px;
   font-weight: 700;

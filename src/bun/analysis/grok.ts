@@ -4,6 +4,7 @@ import type { Signal, AnalysisResultParsed } from "../db/types";
 import type { PriceData } from "../providers/types";
 import {
   SYSTEM_PROMPT,
+  EXPLAIN_SYSTEM_PROMPT,
   buildAnalysisPrompt,
   buildExplainPrompt,
   type PortfolioContext,
@@ -16,7 +17,7 @@ import {
 } from "../db/queries";
 import { providers } from "../providers/manager";
 
-const MODEL = "grok-4.20-reasoning";
+const MODEL = "grok-4.20-non-reasoning-latest";
 
 let _xai: ReturnType<typeof createXai> | null = null;
 
@@ -43,7 +44,7 @@ export async function analyzePortfolio(
 
   const { text } = await generateText({
     model: getClient()(MODEL),
-    maxTokens: 1024,
+    maxTokens: 1500,
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
   });
@@ -70,11 +71,12 @@ export async function explainSignal(
     price = prices[0] ?? null;
   }
 
-  const prompt = buildExplainPrompt(signal.short_label, signal.context, holding, price);
+  const prompt = buildExplainPrompt(signal.short_label, signal.context, signal.action, holding, price);
 
   const { text } = await generateText({
     model: getClient()(MODEL),
-    maxTokens: 512,
+    maxTokens: 1024,
+    system: EXPLAIN_SYSTEM_PROMPT,
     prompt,
   });
 
@@ -82,6 +84,8 @@ export async function explainSignal(
   saveSignalDetail(analysisId, signalIndex, explanation);
   return explanation;
 }
+
+const VALID_ACTIONS = new Set(["watch", "reduce", "add", "exit", "hold"]);
 
 function parseAnalysisResponse(raw: string): { summary: string; signals: Signal[] } {
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
@@ -92,6 +96,7 @@ function parseAnalysisResponse(raw: string): { summary: string; signals: Signal[
     }
     const signals: Signal[] = data.signals.map((s: Record<string, unknown>) => ({
       severity: (["low", "medium", "high"].includes(s.severity as string) ? s.severity : "low") as Signal["severity"],
+      action: (VALID_ACTIONS.has(s.action as string) ? s.action : "hold") as Signal["action"],
       asset: String(s.asset ?? ""),
       short_label: String(s.short_label ?? ""),
       context: String(s.context ?? ""),
@@ -102,6 +107,7 @@ function parseAnalysisResponse(raw: string): { summary: string; signals: Signal[
       summary: "Analysis complete.",
       signals: [{
         severity: "low",
+        action: "watch",
         asset: "PORTFOLIO",
         short_label: "Raw analysis (parse error)",
         context: raw.slice(0, 500),

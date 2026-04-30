@@ -20,6 +20,14 @@ const SEVERITY_BADGE: Record<Signal["severity"], string> = {
   high: "badge-high",
 };
 
+const ACTION_CLASS: Record<Signal["action"], string> = {
+  add: "action-add",
+  hold: "action-hold",
+  watch: "action-watch",
+  reduce: "action-reduce",
+  exit: "action-exit",
+};
+
 export default function SignalCard(props: Props) {
   const [expanded, setExpanded] = createSignal(false);
   const [explanation, setExplanation] = createSignal<string | null>(null);
@@ -53,6 +61,9 @@ export default function SignalCard(props: Props) {
             {props.signal.severity}
           </span>
           <span class="signal-asset">{props.signal.asset}</span>
+          <span class={`signal-action-badge ${ACTION_CLASS[props.signal.action]}`}>
+            {props.signal.action}
+          </span>
           <span class="signal-label">{props.signal.short_label}</span>
         </div>
         <button class="btn btn-ghost btn-sm" onClick={handleExplain}>
