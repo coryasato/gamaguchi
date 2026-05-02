@@ -349,6 +349,7 @@ tbody td.right {
 .gain { color: var(--gain); }
 .loss { color: var(--loss); }
 .muted { color: var(--text-muted); }
+.price-updated { font-size: 11px; color: var(--text-muted); }
 
 .row-actions {
   display: flex;

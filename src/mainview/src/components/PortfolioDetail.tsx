@@ -1,4 +1,4 @@
-import { createResource, createMemo, Show } from "solid-js";
+import { createResource, createMemo, createSignal, createEffect, onMount, onCleanup, Show } from "solid-js";
 import { api } from "../ipc";
 import HoldingsTable from "./HoldingsTable";
 import AssetSearch from "./AssetSearch";
@@ -7,6 +7,8 @@ import AnalysisPanel from "./AnalysisPanel";
 type Props = {
   portfolioId: number;
 };
+
+const PRICE_REFRESH_MS = 2 * 60 * 1000;
 
 export default function PortfolioDetail(props: Props) {
   const [portfolio] = createResource(() => props.portfolioId, (id) =>
@@ -22,9 +24,20 @@ export default function PortfolioDetail(props: Props) {
     [...new Set((holdings() ?? []).map((h) => h.symbol))]
   );
 
-  const [prices] = createResource(symbols, (syms) =>
+  const [prices, { refetch: refetchPrices }] = createResource(symbols, (syms) =>
     syms.length > 0 ? api.getPrices({ symbols: syms }) : Promise.resolve([])
   );
+
+  const [lastUpdated, setLastUpdated] = createSignal<Date | null>(null);
+
+  createEffect(() => {
+    if (prices()) setLastUpdated(new Date());
+  });
+
+  onMount(() => {
+    const id = setInterval(() => refetchPrices(), PRICE_REFRESH_MS);
+    onCleanup(() => clearInterval(id));
+  });
 
   const priceMap = createMemo(() => {
     const map = new Map<string, number>();
@@ -51,6 +64,13 @@ export default function PortfolioDetail(props: Props) {
         <div>
           <div class="section-header">
             <span class="section-title">Holdings</span>
+            <Show when={lastUpdated()}>
+              {(ts) => (
+                <span class="price-updated">
+                  Updated {ts().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                </span>
+              )}
+            </Show>
           </div>
           <HoldingsTable
             holdings={holdings() ?? []}
