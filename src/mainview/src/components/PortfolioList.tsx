@@ -13,6 +13,7 @@ export default function PortfolioList(props: Props) {
   const [creating, setCreating] = createSignal(false);
   const [newName, setNewName] = createSignal("");
   const [newDesc, setNewDesc] = createSignal("");
+  const [confirmDeleteId, setConfirmDeleteId] = createSignal<number | null>(null);
 
   async function handleCreate() {
     const name = newName().trim();
@@ -25,11 +26,23 @@ export default function PortfolioList(props: Props) {
     props.onSelect(portfolio.id);
   }
 
-  async function handleDelete(id: number, e: MouseEvent) {
+  function requestDelete(id: number, e: MouseEvent) {
     e.stopPropagation();
-    if (!confirm("Delete this portfolio and all its holdings?")) return;
+    setConfirmDeleteId(id);
+  }
+
+  async function confirmDelete(e: MouseEvent) {
+    e.stopPropagation();
+    const id = confirmDeleteId();
+    if (id === null) return;
+    setConfirmDeleteId(null);
     await api.deletePortfolio({ id });
     props.onMutate();
+  }
+
+  function cancelDelete(e: MouseEvent) {
+    e.stopPropagation();
+    setConfirmDeleteId(null);
   }
 
   return (
@@ -44,12 +57,22 @@ export default function PortfolioList(props: Props) {
           {(p) => (
             <div
               class={`portfolio-item${props.selectedId === p.id ? " active" : ""}`}
-              onClick={() => props.onSelect(p.id)}
+              onClick={() => { setConfirmDeleteId(null); props.onSelect(p.id); }}
             >
               <span class="portfolio-item-name">{p.name}</span>
-              <div class="portfolio-item-actions">
-                <button class="icon-btn danger" title="Delete" onClick={(e) => handleDelete(p.id, e)}>✕</button>
-              </div>
+              <Show
+                when={confirmDeleteId() === p.id}
+                fallback={
+                  <div class="portfolio-item-actions">
+                    <button class="icon-btn danger" title="Delete" onClick={(e) => requestDelete(p.id, e)}>✕</button>
+                  </div>
+                }
+              >
+                <div class="portfolio-item-confirm">
+                  <button class="icon-btn danger" onClick={confirmDelete}>Delete</button>
+                  <button class="icon-btn" onClick={cancelDelete}>Cancel</button>
+                </div>
+              </Show>
             </div>
           )}
         </For>

@@ -106,6 +106,13 @@ body {
   display: flex;
 }
 
+.portfolio-item-confirm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .icon-btn {
   background: none;
   border: none;
