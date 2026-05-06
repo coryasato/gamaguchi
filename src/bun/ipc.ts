@@ -1,5 +1,6 @@
 import { BrowserView } from "electrobun/bun";
 import type { AppSchema } from "../shared/ipc-schema";
+import type { PriceData } from "./providers/types";
 import {
   listPortfolios,
   getPortfolio,
@@ -12,6 +13,8 @@ import {
   deleteHolding,
   listAnalysisResults,
   getAnalysisById,
+  getLastCachedPrice,
+  upsertPriceCache,
 } from "./db/queries";
 import { providers } from "./providers/manager";
 import { analyzePortfolio, explainSignal } from "./analysis/grok";
@@ -43,7 +46,38 @@ export const rpc = BrowserView.defineRPC<AppSchema>({
       // ── Market data ─────────────────────────────────────────────────────
       searchAssets: ({ query }) => providers.search(query),
 
-      getPrices: ({ symbols }) => providers.getPrices(symbols),
+      getPrices: async ({ symbols }) => {
+        const cachedMap = new Map<string, PriceData>();
+        for (const sym of symbols) {
+          const c = getLastCachedPrice(sym);
+          if (c) {
+            cachedMap.set(c.symbol, {
+              symbol: c.symbol,
+              provider: c.provider,
+              price_usd: c.price_usd,
+              change_24h: c.change_24h,
+              change_7d: c.change_7d,
+              volume_24h: c.volume_24h,
+              market_cap: c.market_cap,
+            });
+          }
+        }
+
+        const allCached = symbols.every(s => cachedMap.has(s.toUpperCase()));
+
+        if (allCached) {
+          // Return cached data immediately and refresh in the background
+          providers.getPrices(symbols)
+            .then(fresh => { for (const p of fresh) upsertPriceCache(p); })
+            .catch(err => console.warn("[prices] background refresh failed:", err));
+          return Array.from(cachedMap.values());
+        }
+
+        // Some symbols have no cache — fetch all fresh and save
+        const fresh = await providers.getPrices(symbols);
+        for (const p of fresh) upsertPriceCache(p);
+        return fresh;
+      },
 
       // ── Analysis ────────────────────────────────────────────────────────
       analyzePortfolio: async ({ portfolioId }) => {

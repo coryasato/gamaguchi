@@ -69,6 +69,15 @@ export function deleteHolding(id: number): void {
 // Max age in minutes before a cached price is considered stale
 const PRICE_CACHE_TTL_MINUTES = 2;
 
+// Returns any cached price regardless of age (for showing stale data on startup)
+export function getLastCachedPrice(symbol: string): PriceCache | null {
+  return getDb()
+    .query<PriceCache, [string]>(
+      "SELECT * FROM price_cache WHERE symbol = ? ORDER BY fetched_at DESC LIMIT 1",
+    )
+    .get(symbol.toUpperCase());
+}
+
 export function getCachedPrice(symbol: string): PriceCache | null {
   return getDb()
     .query<PriceCache, [string, number]>(
