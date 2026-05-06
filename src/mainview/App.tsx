@@ -8,11 +8,13 @@ export default function App() {
   const [portfolios, { refetch }] = createResource(() => api.listPortfolios());
 
   const activeId = () => {
-    const id = selectedId();
-    if (id === null) return null;
     const list = portfolios();
-    if (!list) return id;
-    return list.some(p => p.id === id) ? id : null;
+    if (!list) return null;
+
+    const id = selectedId();
+    if (id !== null && list.some(p => p.id === id)) return id;
+
+    return list[0]?.id ?? null;
   };
 
   return (
@@ -25,14 +27,15 @@ export default function App() {
       />
       <div class="main">
         <Show
-          when={activeId() !== null}
+          when={activeId()}
+          keyed
           fallback={
             <div class="empty-state">
               <p>Select a portfolio or create one to get started.</p>
             </div>
           }
         >
-          <PortfolioDetail portfolioId={activeId()!} />
+          {(id) => <PortfolioDetail portfolioId={id} />}
         </Show>
       </div>
     </div>
