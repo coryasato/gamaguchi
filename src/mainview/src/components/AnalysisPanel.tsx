@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createResource, createSignal, For, Show } from "solid-js";
 import type { AnalysisResultParsed } from "../../../bun/db/types";
 import { api } from "../ipc";
 import SignalCard from "./SignalCard";
@@ -8,7 +8,13 @@ type Props = {
 };
 
 export default function AnalysisPanel(props: Props) {
-  const [result, setResult] = createSignal<AnalysisResultParsed | null>(null);
+  const [savedResult] = createResource(
+    () => props.portfolioId,
+    (id) => api.listAnalysisResults({ portfolioId: id }).then(list => list[0] ?? null),
+  );
+  const [freshResult, setFreshResult] = createSignal<AnalysisResultParsed | null>(null);
+  const result = () => freshResult() ?? savedResult() ?? null;
+
   const [analyzing, setAnalyzing] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
 
@@ -17,7 +23,7 @@ export default function AnalysisPanel(props: Props) {
     setError(null);
     try {
       const res = await api.analyzePortfolio({ portfolioId: props.portfolioId });
-      setResult(res);
+      setFreshResult(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
@@ -28,7 +34,11 @@ export default function AnalysisPanel(props: Props) {
   return (
     <div class="analysis-wrap">
       <div class="section-header">
-        <span class="section-title">AI Analysis</span>
+        <span class="section-title">
+          {result()
+            ? `Last Analysis Completed: ${new Date(result()!.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+            : "AI Analysis"}
+        </span>
         <button
           class="btn btn-primary btn-sm"
           disabled={analyzing()}
